@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { checkSchema } = require("express-validator");
 const { AGsValidationsSchema } = require("../validations/activity-group.validation");
 
-const AGController = require("../controllers/activity-group.controller");
+const AGController = require("../controllers/activity.controller");
 
 router.get("/activity-groups", AGController.getAllAGs);
 router.post("/activity-groups", checkSchema(AGsValidationsSchema), AGController.createAG);
