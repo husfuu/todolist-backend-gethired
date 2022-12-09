@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
 
-const { Todos } = require("../models");
+const { todos } = require("../models");
 const AppError = require("../helpers/error");
 
 exports.getAllTodos = async (req, res, next) => {
@@ -10,14 +10,14 @@ exports.getAllTodos = async (req, res, next) => {
         const activityGroupId = req.query.activity_group_id;
 
         if (activityGroupId) {
-            result = await Todos.findAll({
+            result = await todos.findAll({
                 where: { activity_group_id: activityGroupId },
             });
         } else {
-            result = await Todos.findAll();
+            result = await todos.findAll();
         }
 
-        return res.status(201).json({
+        return res.status(200).json({
             status: "Success",
             message: "Success",
             data: result,
@@ -30,10 +30,10 @@ exports.getAllTodos = async (req, res, next) => {
 exports.getTodoById = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const todo = await Todos.findByPk(id);
+        const todo = await todos.findByPk(id);
 
         if (!todo) {
-            throw new AppError(`Todo with ID ${id} Not Found`, 404, "Not found");
+            throw new AppError(`Todo with ID ${id} Not Found`, 404, "Not Found");
         }
 
         res.status(200).json({
@@ -50,7 +50,7 @@ exports.createTodo = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            throw new AppError(errors.array()[0].msg, 400, "Bad request");
+            throw new AppError(errors.array()[0].msg, 400, "Bad Request");
         }
 
         const data = {
@@ -60,10 +60,10 @@ exports.createTodo = async (req, res, next) => {
             priority: req.body?.priority ?? "very-high",
         };
 
-        const newTodo = await Todos.create({
+        const newTodo = await todos.create({
             activity_group_id: data.activityGroupId,
             title: data.title,
-            isActive: data.isActive,
+            is_active: data.isActive,
             priority: data.priority,
         });
 
@@ -81,7 +81,7 @@ exports.updateTodoById = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            throw new AppError(errors.array()[0].msg, 400, "Bad request");
+            throw new AppError(errors.array()[0].msg, 400, "Bad Request");
         }
 
         const id = req.params.id;
@@ -91,13 +91,13 @@ exports.updateTodoById = async (req, res, next) => {
             priority: req.body?.priority ?? "very-high",
         };
 
-        const todo = await Todos.findByPk(id);
+        const todo = await todos.findByPk(id);
 
         if (!todo) {
-            throw new AppError(`Todo with ID ${id} Not Found`, 404, "Not found");
+            throw new AppError(`Todo with ID ${id} Not Found`, 404, "Not Found");
         }
 
-        await Todos.update(
+        await todos.update(
             {
                 title: data.title,
                 isActive: data.isActive,
@@ -108,7 +108,7 @@ exports.updateTodoById = async (req, res, next) => {
             }
         );
 
-        const result = await Todos.findByPk(id);
+        const result = await todos.findByPk(id);
 
         res.status(200).json({
             status: "Success",
@@ -123,13 +123,21 @@ exports.updateTodoById = async (req, res, next) => {
 exports.deleteTodo = async (req, res, next) => {
     try {
         const id = req.params.id;
-        await Todos.destroy({
+
+        const todo = await todos.findByPk(id);
+
+        if (!todo) {
+            throw new AppError(`Todo with ID ${id} Not Found`, 404, "Not Found");
+        }
+
+        await todos.destroy({
             where: { id },
         });
 
         res.status(200).json({
             status: "Success",
             message: "Success",
+            data: {},
         });
     } catch (error) {
         next(error);
